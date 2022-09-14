@@ -2224,61 +2224,27 @@ else
 	if [ "$repository_type" = "git" ]; then
 		changelog_url=
 		changelog_version=
-		changelog_previous="[Previous Releases](${project_github_url}/releases)"
+		changelog_previous=
 		changelog_url_wowi=
 		changelog_version_wowi=
-		changelog_previous_wowi="[url=${project_github_url}/releases]Previous Releases[/url]"
+		changelog_previous_wowi=
+
 		if [ -z "$previous_version" ] && [ -z "$tag" ]; then
 			# no range, show all commits up to ours
-			changelog_url="[Full Changelog](${project_github_url}/commits/${project_hash})"
-			changelog_version="[${project_version}](${project_github_url}/tree/${project_hash})"
-			changelog_url_wowi="[url=${project_github_url}/commits/${project_hash}]Full Changelog[/url]"
-			changelog_version_wowi="[url=${project_github_url}/tree/${project_hash}]${project_version}[/url]"
 			_changelog_range="$project_hash"
 		elif [ -z "$previous_version" ] && [ -n "$tag" ]; then
 			# first tag, show all commits upto it
-			changelog_url="[Full Changelog](${project_github_url}/commits/${tag})"
-			changelog_version="[${project_version}](${project_github_url}/tree/${tag})"
-			changelog_url_wowi="[url=${project_github_url}/commits/${tag}]Full Changelog[/url]"
-			changelog_version_wowi="[url=${project_github_url}/tree/${tag}]${project_version}[/url]"
 			_changelog_range="$tag"
 		elif [ -n "$previous_version" ] && [ -z "$tag" ]; then
 			# compare between last tag and our commit
-			changelog_url="[Full Changelog](${project_github_url}/compare/${previous_version}...${project_hash})"
-			changelog_version="[$project_version](${project_github_url}/tree/${project_hash})"
-			changelog_url_wowi="[url=${project_github_url}/compare/${previous_version}...${project_hash}]Full Changelog[/url]"
-			changelog_version_wowi="[url=${project_github_url}/tree/${project_hash}]${project_version}[/url]"
 			_changelog_range="$previous_version..$project_hash"
 		elif [ -n "$previous_version" ] && [ -n "$tag" ]; then
 			# compare between last tag and our tag
-			changelog_url="[Full Changelog](${project_github_url}/compare/${previous_version}...${tag})"
-			changelog_version="[$project_version](${project_github_url}/tree/${tag})"
-			changelog_url_wowi="[url=${project_github_url}/compare/${previous_version}...${tag}]Full Changelog[/url]"
-			changelog_version_wowi="[url=${project_github_url}/tree/${tag}]${project_version}[/url]"
 			_changelog_range="$previous_version..$tag"
 		fi
-		# lazy way out
-		if [ -z "$project_github_url" ]; then
-			changelog_url=
-			changelog_version=$project_version
-			changelog_previous=
-			changelog_url_wowi=
-			changelog_version_wowi="[color=orange]${project_version}[/color]"
-			changelog_previous_wowi=
-		elif [ -z "$github_token" ]; then
-			# not creating releases :(
-			changelog_previous=
-			changelog_previous_wowi=
-		fi
+
 		changelog_date=$( TZ='' printf "%(%Y-%m-%d)T" "$project_timestamp" )
 
-		cat <<- EOF | line_ending_filter > "$changelog_path"
-		# $project
-
-		## $changelog_version ($changelog_date)
-		$changelog_url $changelog_previous
-
-		EOF
 		git -C "$topdir" log "$_changelog_range" --pretty=format:"###%B" \
 			| sed -e 's/^/    /g' -e 's/^ *$//g' -e 's/^    ###/- /g' -e 's/$/  /' \
 			      -e 's/\([a-zA-Z0-9]\)_\([a-zA-Z0-9]\)/\1\\_\2/g' \
@@ -2292,9 +2258,6 @@ else
 		if [ -n "$addonid" ] && [ -n "$tag" ] && [ -n "$wowi_gen_changelog" ] && [ "$wowi_markup" = "bbcode" ]; then
 			wowi_changelog="$releasedir/WOWI-$project_version-CHANGELOG.txt"
 			cat <<- EOF | line_ending_filter > "$wowi_changelog"
-			[size=5]${project}[/size]
-			[size=4]${changelog_version_wowi} (${changelog_date})[/size]
-			${changelog_url_wowi} ${changelog_previous_wowi}
 			[list]
 			EOF
 			git -C "$topdir" log "$_changelog_range" --pretty=format:"###%B" \
