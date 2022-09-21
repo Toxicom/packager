@@ -2251,6 +2251,7 @@ else
 			      -e 's/\[ci skip\]//g' -e 's/\[skip ci\]//g' \
 			      -e '/git-svn-id:/d' -e '/^[[:space:]]*This reverts commit [0-9a-f]\{40\}\.[[:space:]]*$/d' \
 			      -e '/^[[:space:]]*$/d' \
+			      -e '/\ TEST:/d' \
 			| line_ending_filter >> "$changelog_path"
 
 		# WoWI uses BBCode, generate something usable to post to the site
@@ -2265,6 +2266,7 @@ else
 				      -e 's/\[ci skip\]//g' -e 's/\[skip ci\]//g' \
 				      -e '/git-svn-id:/d' -e '/^[[:space:]]*This reverts commit [0-9a-f]\{40\}\.[[:space:]]*$/d' \
 				      -e '/^[[:space:]]*$/d' \
+				      -e '/\ TEST:/d' \
 				| line_ending_filter >> "$wowi_changelog"
 			echo "[/list]" | line_ending_filter >> "$wowi_changelog"
 		fi
